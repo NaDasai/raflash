@@ -27,15 +27,15 @@ module module_addr::raflash {
     }
 
     /// SECRET BEHIND FLASH LOAN:
-    /// Does not have the key or store ability, it cannot be transferred or otherwise placed in persistent storage.
+    /// Receipt does not have the key or store ability, it cannot be transferred or otherwise placed in persistent storage.
     /// Does not have the drop ability, it cannot be discarded.
     /// Only way to get rid of this struct is to call repay.
     struct Receipt {
         amount: u64,
     }
 
-    /// This function will be executed after deployment.
-    /// Add entry function to initialize with parameters.
+    /// This function will be executed just after deployment.
+    /// Or else add entry function to initialize with parameters.
     fun init_module(account: &signer) {
         // Initialize the pool with zero funds and zero earnings.
         move_to(account, Pool {
@@ -75,20 +75,28 @@ module module_addr::raflash {
         vector::remove_value(&mut pool.participants, &signer::address_of(account));
     }
 
-    /// Pick a raffle winner and transfer the fees.
     #[randomness]
-    entry fun draw(account: &signer) acquires Pool {
-        let pool = borrow_global_mut<Pool>(signer::address_of(account));
+    /// Pick a raffle winner and transfer the fees.
+    entry fun draw() acquires Pool {
+        let pool = borrow_global_mut<Pool>(@module_addr);
         let num_participants = vector::length(&pool.participants);
-        assert!(num_participants > 0, EFLASHLOAN_NOT_ENOUGH_MONEY);
+        assert!(num_participants > 0, ENOT_ENOUGH_PARTICIPANTS);
 
         let winner_index = randomness::u8_range(0, (num_participants as u8));
         let winner = *vector::borrow(&pool.participants, (winner_index as u64));
 
-        let pool = borrow_global_mut<Pool>(@module_addr);
         pool.fees = 0;
         let reward = coin::extract(&mut pool.coins, pool.fees);
         coin::deposit(winner, reward);
+    }
+
+    public entry fun donate (account: &signer, amount: u64) acquires Pool {
+        coin::register<AptosCoin>(account);
+        let pool = borrow_global_mut<Pool>(@module_addr);
+        let coin = coin::withdraw<AptosCoin>(account, amount * 100000000);
+        pool.fees = pool.fees + amount;
+        coin::merge(&mut pool.coins, coin);
+
     }
 
     /// FLASH LOAN
