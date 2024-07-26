@@ -1,21 +1,21 @@
 module module_addr::raflash {
     use std::error;
     use std::vector;
+    use aptos_std::math64;
     use aptos_framework::coin;
     use aptos_framework::aptos_coin::AptosCoin;
     use aptos_framework::signer;
-    use aptos_std::math64;
     //use std::string::{Self, String};
     //use aptos_framework::event;
     //use aptos_framework::timestamp;
 
     use aptos_framework::randomness;
 
-    const ETICKET_COSTS_ONE_APT: u64 = 0; // Ticket cost: 1 APT.
-    const ENOT_ENOUGH_PARTICIPANTS: u64 = 1;
-    const EFLASHLOAN_NOT_ENOUGH_MONEY: u64 = 2;
+    const ENOT_ENOUGH_PARTICIPANTS: u64 = 0;
+    const EFLASHLOAN_NOT_ENOUGH_MONEY: u64 = 1;
 
     /// STRUCTS
+    /// We want users to buy tickets with AptosCoin (APT) because it's more useful for flash loans.
     struct Pool has key {
         fees: u64,
         participants: vector<address>,
@@ -26,15 +26,16 @@ module module_addr::raflash {
         amount: u64,
     }
 
-    /// Because this struct does not have the key or store ability, it cannot be transferred or otherwise placed in persistent storage.
-    /// Because it does not have the drop ability, it cannot be discarded. Thus, the only way to get rid of this struct is to call
-    /// repay sometime during the transaction that created it, which is exactly what we want from a flash loan.
+    /// SECRET BEHIND FLASH LOAN:
+    /// Does not have the key or store ability, it cannot be transferred or otherwise placed in persistent storage.
+    /// Does not have the drop ability, it cannot be discarded.
+    /// Only way to get rid of this struct is to call repay.
     struct Receipt {
         amount: u64,
     }
 
-    // This function will be executed after deployment.
-    // Add entry function to initialize through an use (and add parameter if wanted then).
+    /// This function will be executed after deployment.
+    /// Add entry function to initialize with parameters.
     fun init_module(account: &signer) {
         // Initialize the pool with zero funds and zero earnings.
         move_to(account, Pool {
@@ -46,17 +47,15 @@ module module_addr::raflash {
 
     /// POOL
     public entry fun buy_ticket (account: &signer) acquires Pool {
-        //assert!(coin::value(&coin) == 1, ETICKET_COSTS_ONE_APT);
         coin::register<AptosCoin>(account);
         let pool = borrow_global_mut<Pool>(@module_addr);
-        let coin = coin::withdraw<AptosCoin>(account, 100000000); // This is 1 APT
+        let coin = coin::withdraw<AptosCoin>(account, 100000000); // This is 1 APT (Ticket price)
         coin::merge(&mut pool.coins, coin);
         move_to(account, Ticket {amount : 1}); // add if exist later
         vector::push_back(&mut pool.participants, signer::address_of(account));
 
     }
 
-    // workaround: don't return ticket and get claim
     public entry fun repay_ticket (account: &signer) acquires Ticket, Pool {
         let ticket = borrow_global_mut<Ticket>(signer::address_of(account));
         ticket.amount = ticket.amount - 1;
@@ -64,12 +63,12 @@ module module_addr::raflash {
             move_from<Ticket>(signer::address_of(account));
         };
         let pool = borrow_global_mut<Pool>(@module_addr);
-        let coin = coin::extract(&mut pool.coins, 100000000);
+        let coin = coin::extract(&mut pool.coins, 100000000); // This is 1 APT (Ticket price)
         coin::deposit(signer::address_of(account), coin);
         vector::remove_value(&mut pool.participants, &signer::address_of(account));
     }
 
-    // Pick a raffle winner and transfer the fees.
+    /// Pick a raffle winner and transfer the fees.
     #[randomness]
     entry fun draw(account: &signer) acquires Pool {
         let pool = borrow_global_mut<Pool>(signer::address_of(account));

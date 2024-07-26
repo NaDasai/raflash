@@ -13,5 +13,11 @@ Even if participants don't win the raffle, part of the earnings will go to chari
 By integrating the unique benefits of flash loans with the fun and anticipation of raffles, Raflash offers a novel way for users to engage in DeFi while potentially earning significant rewards and contributing to a good cause.
 Join Raflash to experience a new level of participation and excitement in the crypto world, where everyone is happy.
 
+SECRET BEHIND FLASH LOAN:
+
+Because this struct **does not have the key or store ability**, **it cannot be transferred or otherwise placed in persistent storage**.
+Because it **does not have the drop ability**, **it cannot be discarded**.
+Thus, the **only way to get rid of this struct is to call repay** sometime during the transaction that created it, which is exactly what we want from a flash loan.
+
 
 
