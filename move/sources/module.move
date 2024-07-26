@@ -1,5 +1,4 @@
 module module_addr::raflash {
-    use std::error;
     use std::vector;
     use aptos_std::math64;
     use aptos_framework::coin;
@@ -8,6 +7,7 @@ module module_addr::raflash {
     //use std::string::{Self, String};
     //use aptos_framework::event;
     //use aptos_framework::timestamp;
+    //use std::error;
 
     use aptos_framework::randomness;
 
@@ -32,6 +32,7 @@ module module_addr::raflash {
     /// Only way to get rid of this struct is to call repay.
     struct Receipt {
         amount: u64,
+        fees: u64,
     }
 
     /// This function will be executed just after deployment.
@@ -100,28 +101,29 @@ module module_addr::raflash {
     }
 
     /// FLASH LOAN
-    public fun flashloan<AptosCoin>(amount: u64) : (coin::Coin<aptos_framework::aptos_coin::AptosCoin>, Receipt) acquires Pool {
+    public fun flashloan(account: &signer, amount: u64) : Receipt acquires Pool {
         let pool = borrow_global_mut<Pool>(@module_addr);
         let coin = coin::extract(&mut pool.coins, amount);
-        let receipt = Receipt {  amount: amount + math64::mul_div(amount, 1, 100)}; // 1% fee
+        let receipt = Receipt {  amount, fees: math64::mul_div(amount, 1, 100)}; // 1% fee
 
-        (coin, receipt)
+        coin::deposit(signer::address_of(account), coin);
+
+        receipt
     }
 
-    public fun flashrepay<AptosCoin>(coin: coin::Coin<aptos_framework::aptos_coin::AptosCoin>, receipt: Receipt) acquires Pool {
-        let Receipt { amount } = receipt;
-        assert!(
-            coin::value(&coin) >= amount,
-            error::invalid_argument(EFLASHLOAN_NOT_ENOUGH_MONEY)
-        );
+    public fun flashrepay (account: &signer, receipt: Receipt) acquires Pool {
+        coin::register<AptosCoin>(account);
+        let Receipt { amount, fees } = receipt;
+        let coin = coin::withdraw<AptosCoin>(account, amount + fees);
 
         let pool = borrow_global_mut<Pool>(@module_addr);
         coin::merge(&mut pool.coins, coin);
+        pool.fees = pool.fees + fees;
     }
 
-    public entry fun try_flash(amount: u64) acquires Pool {
-        let (coins, receipt) = flashloan<AptosCoin>(amount);
-        flashrepay<AptosCoin>(coins, receipt);
+    public entry fun try_flash(account: &signer, amount: u64) acquires Pool {
+        let receipt = flashloan(account, amount);
+        flashrepay(account, receipt);
     }
 
     #[view]
