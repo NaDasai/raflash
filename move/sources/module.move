@@ -86,9 +86,9 @@ module module_addr::raflash {
         let winner_index = randomness::u8_range(0, (num_participants as u8));
         let winner = *vector::borrow(&pool.participants, (winner_index as u64));
 
-        pool.fees = 0;
         let reward = coin::extract(&mut pool.coins, pool.fees);
         coin::deposit(winner, reward);
+        pool.fees = 0;
     }
 
     public entry fun donate (account: &signer, amount: u64) acquires Pool {
