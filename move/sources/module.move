@@ -46,12 +46,19 @@ module module_addr::raflash {
     }
 
     /// POOL
-    public entry fun buy_ticket (account: &signer) acquires Pool {
+    public entry fun buy_ticket (account: &signer) acquires Pool, Ticket{
         coin::register<AptosCoin>(account);
         let pool = borrow_global_mut<Pool>(@module_addr);
         let coin = coin::withdraw<AptosCoin>(account, 100000000); // This is 1 APT (Ticket price)
         coin::merge(&mut pool.coins, coin);
-        move_to(account, Ticket {amount : 1}); // add if exist later
+
+        if (exists<Ticket>(signer::address_of(account))) {
+            let ticket = borrow_global_mut<Ticket>(signer::address_of(account));
+            ticket.amount = ticket.amount + 1;
+
+        } else {
+            move_to(account, Ticket {amount : 1});
+        };
         vector::push_back(&mut pool.participants, signer::address_of(account));
 
     }
