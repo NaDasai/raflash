@@ -13,14 +13,14 @@ async function publish() {
   move
     .createObjectAndPublishPackage({
       packageDirectoryPath: "move",
-      addressName: "message_board_addr",
+      addressName: "module_addr",
       namedAddresses: {
         // Publish module to new object, but since we create the object on the fly, we fill in the publisher's account address here
-        message_board_addr: accountAddress,
+        module_addr: accountAddress,
       },
       profile: `${process.env.PROJECT_NAME}-${process.env.VITE_APP_NETWORK}`,
     })
-    .then((response) => {
+    .then((objectAddress) => {
       const filePath = ".env";
       let envContent = "";
 
@@ -31,7 +31,7 @@ async function publish() {
 
       // Regular expression to match the VITE_MODULE_ADDRESS variable
       const regex = /^VITE_MODULE_ADDRESS=.*$/m;
-      const newEntry = `VITE_MODULE_ADDRESS=${response.objectAddress}`;
+      const newEntry = `VITE_MODULE_ADDRESS=${objectAddress}`;
 
       // Check if VITE_MODULE_ADDRESS is already defined
       if (envContent.match(regex)) {

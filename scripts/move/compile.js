@@ -15,7 +15,7 @@ async function compile() {
     packageDirectoryPath: "move",
     namedAddresses: {
       // Compile module with account address
-      message_board_addr: accountAddress,
+      module_addr: accountAddress,
     },
   });
 }

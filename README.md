@@ -1,33 +1,23 @@
-## Create Aptos Dapp Boilerplate Template
+## Raflash
 
-The Boilerplate template provides a starter dapp with all necessary dapp infrastructure and a simple wallet info implementation.
+Combining Raffles with Flash Loans.
 
 
-## The Boilerplate template provides:
+### Raflash: Combining Raffles with Flash Loans for Maximized Rewards.
 
-- **Folder structure** - A pre-made dapp folder structure with a `frontend` and `move` folders.
-- **Dapp infrastructure** - All required dependencies a dapp needs to start building on the Aptos network.
-- **Wallet Info implementation** - Pre-made `WalletInfo` components to demonstrate how one can use to read a connected Wallet info.
+Raflash is an innovative decentralized finance (DeFi) project that merges the excitement of raffles with the financial mechanics of flash loans.
+Participants buy tickets to enter the raffle, and the funds collected from ticket sales are utilized for flash loans.
+The fees earned from these flash loans are then accumulated and awarded to the lucky winner of a future draw.
+One of the unique aspects of Raflash is that users can get their money back, making it a win-win situation.
+Even if participants don't win the raffle, part of the earnings will go to charity, ensuring that everyone benefits.
+By integrating the unique benefits of flash loans with the fun and anticipation of raffles, Raflash offers a novel way for users to engage in DeFi while potentially earning significant rewards and contributing to a good cause.
+Join Raflash to experience a new level of participation and excitement in the crypto world, where everyone is happy.
 
-### What tools the template uses?
+SECRET BEHIND FLASH LOAN:
 
-- React framework
-- Vite development tool
-- shadcn/ui + tailwind for styling
-- Aptos TS SDK
-- Aptos Wallet Adapter
-- Node based Move commands
+Because this struct **does not have the key or store ability**, **it cannot be transferred or otherwise placed in persistent storage**.
+Because it **does not have the drop ability**, **it cannot be discarded**.
+Thus, the **only way to get rid of this struct is to call repay** sometime during the transaction that created it, which is exactly what we want from a flash loan.
 
-### What Move commands are available?
 
-The tool utilizes [aptos-cli npm package](https://github.com/aptos-labs/aptos-cli) that lets us run Aptos CLI in a Node environment.
 
-Some commands are built-in the template and can be ran as a npm script, for example:
-
-- `npm run move:init` - a command to initialize an account to publish the Move contract and to configure the development environment
-- `npm run move:publish` - a command to publish the Move contract
-- `npm run move:test` - a command to run Move unit tests
-- `npm run move:compile` - a command to compile the Move contract
-- `npm run deploy` - a command to deploy the dapp to Vercel
-
-For all other available CLI commands, can run `npx aptos` and see a list of all available commands.

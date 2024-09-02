@@ -1,12 +1,13 @@
 [package]
-name = "MessageBoard"
+name = "raflash"
 version = "1.0.0"
 authors = []
 
 [addresses]
-message_board_addr = "_"
+module_addr = "_"
 
 [dependencies]
-AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "mainnet", subdir = "aptos-move/framework/aptos-framework" }
+AptosFramework = { local = "/Users/nadhir/Documents/Procyon/Aptos/aptos-core-main/aptos-move/framework/aptos-framework" , rev="testnet" }
+AptosTokenObjects = { local = "/Users/nadhir/Documents/Procyon/Aptos/aptos-core-main/aptos-move/framework/aptos-token-objects", rev = "testnet" }
 
 [dev-dependencies]
