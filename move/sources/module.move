@@ -12,6 +12,8 @@ module module_addr::raflash {
 
     use aptos_framework::randomness;
 
+    use aptos_framework::event;
+
     const ENOT_ENOUGH_PARTICIPANTS: u64 = 0;
     const EFLASHLOAN_NOT_ENOUGH_MONEY: u64 = 1;
 
@@ -32,6 +34,33 @@ module module_addr::raflash {
     /// Does not have the drop ability, it cannot be discarded.
     /// Only way to get rid of this struct is to call repay.
     struct Receipt {
+        amount: u64,
+        fees: u64,
+    }
+
+    // EVENTS
+
+    #[event]
+    struct TicketBoughtEvent has drop, store {
+        buyer: address,
+        amount: u64,
+    }
+
+    #[event]
+    struct TicketRepaidEvent has drop, store {
+        buyer: address,
+        amount: u64,
+    }
+
+    #[event]
+    struct DrawEvent has drop, store {
+        winner: address,
+        reward: u64,
+    }
+
+    #[event]
+    struct FlashloanEvent has drop, store {
+        borrower: address,
         amount: u64,
         fees: u64,
     }
@@ -63,6 +92,12 @@ module module_addr::raflash {
         };
         vector::push_back(&mut pool.participants, signer::address_of(account));
 
+        // Event
+        let events = TicketBoughtEvent {
+            buyer: signer::address_of(account),
+            amount: 1,
+        };
+        event::emit(events);
     }
 
     public entry fun repay_ticket (account: &signer) acquires Ticket, Pool {
@@ -75,6 +110,13 @@ module module_addr::raflash {
         let coin = coin::extract(&mut pool.coins, 100000000); // This is 1 APT (Ticket price)
         coin::deposit(signer::address_of(account), coin);
         vector::remove_value(&mut pool.participants, &signer::address_of(account));
+
+        // Event
+        let events = TicketRepaidEvent {
+            buyer: signer::address_of(account),
+            amount: 1,
+        }
+        event::emit(events);
     }
 
     #[randomness]
@@ -90,6 +132,13 @@ module module_addr::raflash {
         let reward = coin::extract(&mut pool.coins, 1000000);
         coin::deposit(winner, reward);
         pool.fees = 0;
+
+        // Event
+        let events = DrawEvent {
+            winner: winner,
+            reward: 10,
+        }
+        event::emit(events);
     }
 
     public entry fun donate (account: &signer, amount: u64) acquires Pool {
@@ -108,6 +157,14 @@ module module_addr::raflash {
         let receipt = Receipt {  amount, fees: math64::mul_div(amount, 1, 100)}; // 1% fee
 
         coin::deposit(signer::address_of(account), coin);
+
+        // Event
+        let events = FlashloanEvent {
+            borrower: signer::address_of(account),
+            amount: amount,
+            fees: receipt.fees,
+        }
+        event::emit(events);
 
         receipt
     }

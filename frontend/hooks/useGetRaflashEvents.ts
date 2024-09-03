@@ -6,11 +6,13 @@ interface QueryResult {
 }
 
 export interface RaflashEvent {
-    type: string;
+    account_address: string;
+    creation_number: string;
     data: TicketBoughtEvent | TicketRepaidEvent | DrawEvent | FlashloanEvent;
+    event_index: string;
     sequence_number: string;
     transaction_version: string;
-    event_index: string;
+    type: string;
 }
 
 interface TicketBoughtEvent {
@@ -50,10 +52,12 @@ export function useGetRaflashEvents(limit: number = 100) {
                 raflash_events(
                   limit: $limit
                   where: {account_address: {_eq: $contractAddress}}
-                  order_by: { transaction_version: desc }
+                  order_by: { creation_number: desc }
                 ) {
+                  account_address
                   type
                   data
+                  creation_number
                   sequence_number
                   transaction_version
                   event_index
