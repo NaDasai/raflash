@@ -4,8 +4,8 @@ module module_addr::raflash {
     use aptos_framework::coin;
     use aptos_framework::aptos_coin::AptosCoin;
     use aptos_framework::signer;
+    use aptos_framework::event;
     //use std::string::{Self, String};
-    //use aptos_framework::event;
     //use aptos_framework::timestamp;
     //use std::error;
     //use aptos_framework::fixed_point64;
@@ -32,6 +32,33 @@ module module_addr::raflash {
     /// Does not have the drop ability, it cannot be discarded.
     /// Only way to get rid of this struct is to call repay.
     struct Receipt {
+        amount: u64,
+        fees: u64,
+    }
+
+    // EVENTS
+
+    #[event]
+    struct TicketBoughtEvent has drop, store {
+        buyer: address,
+        amount: u64,
+    }
+
+    #[event]
+    struct TicketRepaidEvent has drop, store {
+        buyer: address,
+        amount: u64,
+    }
+
+    #[event]
+    struct DrawEvent has drop, store {
+        winner: address,
+        reward: u64,
+    }
+
+    #[event]
+    struct FlashloanEvent has drop, store {
+        borrower: address,
         amount: u64,
         fees: u64,
     }
@@ -63,6 +90,13 @@ module module_addr::raflash {
         };
         vector::push_back(&mut pool.participants, signer::address_of(account));
 
+        // Emit Ticket Bought Event
+        event::emit<TicketBoughtEvent>(
+            TicketBoughtEvent {
+                buyer: signer::address_of(account),
+                amount: 1,
+            }
+        );
     }
 
     public entry fun repay_ticket (account: &signer) acquires Ticket, Pool {
@@ -75,6 +109,14 @@ module module_addr::raflash {
         let coin = coin::extract(&mut pool.coins, 100000000); // This is 1 APT (Ticket price)
         coin::deposit(signer::address_of(account), coin);
         vector::remove_value(&mut pool.participants, &signer::address_of(account));
+
+        // Emit Ticket Repaid Event
+        event::emit<TicketRepaidEvent>(
+            TicketRepaidEvent {
+                buyer: signer::address_of(account),
+                amount: 1,
+            }
+        );
     }
 
     #[randomness]
@@ -88,8 +130,17 @@ module module_addr::raflash {
         let winner = *vector::borrow(&pool.participants, (winner_index as u64));
 
         let reward = coin::extract(&mut pool.coins, 1000000);
+        let reward_amount = coin::value(&reward);
         coin::deposit(winner, reward);
         pool.fees = 0;
+
+        // Emit Event for winner
+        event::emit<DrawEvent>(
+            DrawEvent {
+                winner: winner,
+                reward: reward_amount,
+            }
+        );
     }
 
     public entry fun donate (account: &signer, amount: u64) acquires Pool {
@@ -109,6 +160,7 @@ module module_addr::raflash {
 
         coin::deposit(signer::address_of(account), coin);
 
+
         receipt
     }
 
@@ -120,7 +172,17 @@ module module_addr::raflash {
         let pool = borrow_global_mut<Pool>(@module_addr);
         coin::merge(&mut pool.coins, coin);
         pool.fees = pool.fees + 100000000;
+
+        // Emit Flashloan Event
+        event::emit<FlashloanEvent>(
+            FlashloanEvent {
+                borrower: signer::address_of(account),
+                amount: amount,
+                fees: fees,
+            }
+        );
     }
+
 
     public entry fun try_flash(account: &signer, amount: u64) acquires Pool {
         let receipt = flashloan(account, amount);
