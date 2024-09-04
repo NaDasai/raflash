@@ -7,7 +7,7 @@ authors = []
 module_addr = "_"
 
 [dependencies]
-AptosFramework = { local = "/Users/nadhir/Documents/Procyon/Aptos/aptos-core-main/aptos-move/framework/aptos-framework" , rev="testnet" }
-AptosTokenObjects = { local = "/Users/nadhir/Documents/Procyon/Aptos/aptos-core-main/aptos-move/framework/aptos-token-objects", rev = "testnet" }
+AptosFramework = { local = "/home/bene/aptos-core-main/aptos-move/framework/aptos-framework" , rev="testnet" }
+AptosTokenObjects = { local = "/home/bene/aptos-core-main/aptos-move/framework/aptos-token-objects", rev = "testnet" }
 
 [dev-dependencies]

@@ -5,14 +5,12 @@ module module_addr::raflash {
     use aptos_framework::aptos_coin::AptosCoin;
     use aptos_framework::signer;
     //use std::string::{Self, String};
-    //use aptos_framework::event;
+    use aptos_framework::event;
     //use aptos_framework::timestamp;
     //use std::error;
     //use aptos_framework::fixed_point64;
 
     use aptos_framework::randomness;
-
-    use aptos_framework::event;
 
     const ENOT_ENOUGH_PARTICIPANTS: u64 = 0;
     const EFLASHLOAN_NOT_ENOUGH_MONEY: u64 = 1;
@@ -93,10 +91,12 @@ module module_addr::raflash {
         vector::push_back(&mut pool.participants, signer::address_of(account));
 
         // Emit Ticket Bought Event
-        event::emit_event(TicketBoughtEvent {
-            buyer: signer::address_of(account),
-            amount: 1,
-        });
+        event::emit<TicketBoughtEvent>(
+            TicketBoughtEvent {
+                buyer: signer::address_of(account),
+                amount: 1,
+            }
+        );
     }
 
     public entry fun repay_ticket (account: &signer) acquires Ticket, Pool {
@@ -111,10 +111,12 @@ module module_addr::raflash {
         vector::remove_value(&mut pool.participants, &signer::address_of(account));
 
         // Emit Ticket Repaid Event
-        event::emit_event(TicketRepaidEvent {
-            buyer: signer::address_of(account),
-            amount: 1,
-        });
+        event::emit<TicketRepaidEvent>(
+            TicketRepaidEvent {
+                buyer: signer::address_of(account),
+                amount: 1,
+            }
+        );
     }
 
     #[randomness]
@@ -128,14 +130,17 @@ module module_addr::raflash {
         let winner = *vector::borrow(&pool.participants, (winner_index as u64));
 
         let reward = coin::extract(&mut pool.coins, 1000000);
+        let reward_amount = coin::value(&reward);
         coin::deposit(winner, reward);
         pool.fees = 0;
 
         // Emit Event for winner
-        event::emit_event(DrawEvent {
-            winner: winner,
-            reward: reward,
-        });
+        event::emit<DrawEvent>(
+            DrawEvent {
+                winner: winner,
+                reward: reward_amount,
+            }
+        );
     }
 
     public entry fun donate (account: &signer, amount: u64) acquires Pool {
@@ -155,12 +160,6 @@ module module_addr::raflash {
 
         coin::deposit(signer::address_of(account), coin);
 
-        // Emit Flashloan Event
-        event::emit_event(FlashloanEvent {
-            borrower: signer::address_of(account),
-            amount: amount,
-            fees: receipt.fees,
-        });
 
         receipt
     }
@@ -173,7 +172,17 @@ module module_addr::raflash {
         let pool = borrow_global_mut<Pool>(@module_addr);
         coin::merge(&mut pool.coins, coin);
         pool.fees = pool.fees + 100000000;
+
+        // Emit Flashloan Event
+        event::emit<FlashloanEvent>(
+            FlashloanEvent {
+                borrower: signer::address_of(account),
+                amount: amount,
+                fees: fees,
+            }
+        );
     }
+
 
     public entry fun try_flash(account: &signer, amount: u64) acquires Pool {
         let receipt = flashloan(account, amount);
