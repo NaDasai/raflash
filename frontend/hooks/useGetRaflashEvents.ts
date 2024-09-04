@@ -1,80 +1,65 @@
-import { aptosClient } from "@/utils/aptosClient";
-import { useQuery } from "@tanstack/react-query";
-
-// https://api.devnet.aptoslabs.com/v1/spec#/operations/get_events_by_creation_number
-
+import { aptosClient } from '../utils/aptosClient';
 interface QueryResult {
-    raflash_events: RaflashEvent[];
-}
-
-export interface RaflashEvent {
-    account_address: string;
-    creation_number: string;
-    data: TicketBoughtEvent | TicketRepaidEvent | DrawEvent | FlashloanEvent;
-    event_index: string;
-    sequence_number: string;
-    transaction_version: string;
+  events: Array<{
+    version: string;
     type: string;
+    data: {
+      buyer?: string;
+      amount?: number;
+      winner?: string;
+      reward?: number;
+      borrower?: string;
+      fees?: number;
+    };
+  }>;
 }
 
-interface TicketBoughtEvent {
-    buyer: string;
-    amount: string;
-}
-
-interface TicketRepaidEvent {
-    buyer: string;
-    amount: string;
-}
-
-interface DrawEvent {
-    winner: string;
-    rewards: string;
-}
-
-interface FlashloanEvent {
-    borrower: string;
-    amount: string;
-    fees: string;
-}
-
-export function useGetRaflashEvents(limit: number = 100) {
-  return useQuery({
-    queryKey: ["raflash-events", limit],
-    refetchInterval: 5000, // Refetch every 5 seconds for real-time updates
-    queryFn: async () => {
-      try {
-        const res = await aptosClient().queryIndexer<QueryResult>({
-          query: {
-            variables: {
-              limit: limit,
-            },
-            query: `
-              query RaflashEvents($limit: Int!) {
-                raflash_events(
-                  limit: $limit
-                  where: {account_address: {_eq: $contractAddress}}
-                  order_by: { creation_number: desc }
-                ) {
-                  account_address
-                  type
-                  data
-                  creation_number
-                  sequence_number
-                  transaction_version
-                  event_index
-                }
-              }`,
-          },
-        });
-
-        const events = res.raflash_events;
-        if (!events) return null;
-
-        return [...events] satisfies RaflashEvent[];
-      } catch (error) {
-        console.error(error);
-      }
+// Fetching events related to your module
+async function fetchRaflashEvents(accountAddress: string) {
+  const res = await aptosClient().queryIndexer<QueryResult>({
+    query: {
+      variables: {
+        accountAddress: accountAddress,
+      },
+      query: `
+        query RaflashEvents($accountAddress: String) {
+          events(
+            where: {
+              account_address: {
+                _eq: $accountAddress
+              },
+              event_type: {
+                _in: [
+                  "module_addr::raflash::TicketBoughtEvent",
+                  "module_addr::raflash::TicketRepaidEvent",
+                  "module_addr::raflash::DrawEvent",
+                  "module_addr::raflash::FlashloanEvent"
+                ]
+              }
+            }
+          ) {
+            version
+            type
+            data
+          }
+        }
+      `,
     },
   });
+
+  return res.events;
 }
+
+// Example usage of the function
+async function getEvents(accountAddress: string) {
+  const events = await fetchRaflashEvents(accountAddress);
+
+  events.forEach((event) => {
+    console.log(`Event Version: ${event.version}`);
+    console.log(`Event Type: ${event.type}`);
+    console.log(`Event Data: ${JSON.stringify(event.data)}`);
+  });
+}
+
+// Replace with the actual account address
+getEvents("your_account_address_here");
