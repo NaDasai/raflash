@@ -4,8 +4,8 @@ module module_addr::raflash {
     use aptos_framework::coin;
     use aptos_framework::aptos_coin::AptosCoin;
     use aptos_framework::signer;
-    //use std::string::{Self, String};
     use aptos_framework::event;
+    //use std::string::{Self, String};
     //use aptos_framework::timestamp;
     //use std::error;
     //use aptos_framework::fixed_point64;
