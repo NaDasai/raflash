@@ -92,12 +92,11 @@ module module_addr::raflash {
         };
         vector::push_back(&mut pool.participants, signer::address_of(account));
 
-        // Event
-        let events = TicketBoughtEvent {
+        // Emit Ticket Bought Event
+        event::emit_event(TicketBoughtEvent {
             buyer: signer::address_of(account),
             amount: 1,
-        };
-        event::emit(events);
+        });
     }
 
     public entry fun repay_ticket (account: &signer) acquires Ticket, Pool {
@@ -111,12 +110,11 @@ module module_addr::raflash {
         coin::deposit(signer::address_of(account), coin);
         vector::remove_value(&mut pool.participants, &signer::address_of(account));
 
-        // Event
-        let events = TicketRepaidEvent {
+        // Emit Ticket Repaid Event
+        event::emit_event(TicketRepaidEvent {
             buyer: signer::address_of(account),
             amount: 1,
-        }
-        event::emit(events);
+        });
     }
 
     #[randomness]
@@ -133,12 +131,11 @@ module module_addr::raflash {
         coin::deposit(winner, reward);
         pool.fees = 0;
 
-        // Event
-        let events = DrawEvent {
+        // Emit Event for winner
+        event::emit_event(DrawEvent {
             winner: winner,
-            reward: 10,
-        }
-        event::emit(events);
+            reward: reward,
+        });
     }
 
     public entry fun donate (account: &signer, amount: u64) acquires Pool {
@@ -158,13 +155,12 @@ module module_addr::raflash {
 
         coin::deposit(signer::address_of(account), coin);
 
-        // Event
-        let events = FlashloanEvent {
+        // Emit Flashloan Event
+        event::emit_event(FlashloanEvent {
             borrower: signer::address_of(account),
             amount: amount,
             fees: receipt.fees,
-        }
-        event::emit(events);
+        });
 
         receipt
     }

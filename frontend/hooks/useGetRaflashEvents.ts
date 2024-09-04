@@ -1,6 +1,8 @@
 import { aptosClient } from "@/utils/aptosClient";
 import { useQuery } from "@tanstack/react-query";
 
+// https://api.devnet.aptoslabs.com/v1/spec#/operations/get_events_by_creation_number
+
 interface QueryResult {
     raflash_events: RaflashEvent[];
 }
