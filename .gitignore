@@ -2,6 +2,7 @@
 .aptos
 .env
 move/build
+move/Move.toml
 
 # Logs
 logs
