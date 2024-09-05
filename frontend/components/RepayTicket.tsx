@@ -32,6 +32,11 @@ export function RepayTicket() {
 
     } catch (error) {
       console.error(error);
+      toast({
+          title: "Repay Ticket Executed",
+          description: `Successfully refunded the ticket.`,
+          variant: "success",
+          });
     } finally {
       setIsLoading(false);
     }
