@@ -4,40 +4,25 @@ import { toast } from "@/components/ui/use-toast";
 import { aptosClient } from "@/utils/aptosClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { executeTryFlash } from "@/entry-functions/executeTryFlash";
 
-const MODULE_ADDRESS = "module_addr";
+const MODULE_ADDRESS = "0x037460d919f725db056a21b9da4682088748f6128b1ae2ce8ddf9a10ab469c0a";
 const MODULE_NAME = "raflash";
 
-function executeTryFlash({ amount }) {
-  return {
-    type: "entry_function_payload",
-    function: `${MODULE_ADDRESS}::${MODULE_NAME}::try_flash`,
-    type_arguments: [],
-    arguments: [amount],
-  };
-}
-
 export function TryFlashLoan() {
-  const { signAndSubmitTransaction } = useWallet();
+  const { account, signAndSubmitTransaction } = useWallet();
+  const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [amount, setAmount] = useState("");
 
   const handleTryFlashLoan = async () => {
-    if (!amount || isNaN(Number(amount))) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid number for the loan amount.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const transaction = await signAndSubmitTransaction(executeTryFlash({ amount: Number(amount) }));
-      
-      await aptosClient.waitForTransaction({ transactionHash: transaction.hash });
-      
+      const transaction = await signAndSubmitTransaction(
+          executeTryFlash({ amount: parseInt(amount)  }));
+      const result = await aptosClient.waitForTransactionWithResult(transaction.hash);
+      setData(result);
+
       toast({
         title: "Flash Loan Executed",
         description: `Successfully executed a flash loan for ${amount} tokens.`,
@@ -68,7 +53,7 @@ export function TryFlashLoan() {
       <Button
         onClick={handleTryFlashLoan}
         disabled={isLoading || !amount}
-        className="bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600 text-white font-semibold py-2 px-6 rounded-full shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
+        className="bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
       >
         {isLoading ? "Processing..." : "Execute Flash Loan"}
       </Button>

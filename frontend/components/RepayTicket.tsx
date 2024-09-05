@@ -6,7 +6,7 @@ import { aptosClient } from "@/utils/aptosClient";
 import { Button } from "@/components/ui/button";
 import { repayTicket } from "@/entry-functions/repayTicket";
 
-const MODULE_ADDRESS = "module_addr";
+const MODULE_ADDRESS = "0x037460d919f725db056a21b9da4682088748f6128b1ae2ce8ddf9a10ab469c0a";
 const MODULE_NAME = "raflash";
 
 export function RepayTicket() {
@@ -20,8 +20,16 @@ export function RepayTicket() {
       const transaction = await signAndSubmitTransaction(
         repayTicket({}),
       );
-      const result = await aptosClient.account.getResource(account.address, 'MODULE_ADDRESS::module_addr::Ticket');
+      const result = await aptosClient.account.getResource(account.address,
+          `${MODULE_ADDRESS}::${MODULE_NAME}::Pool`);
       setData(result.data);
+
+       toast({
+              title: "Repay Ticket Executed",
+              description: `Successfully refunded the ticket.`,
+              variant: "success",
+            });
+
     } catch (error) {
       console.error(error);
     } finally {
