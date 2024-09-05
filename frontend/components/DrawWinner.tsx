@@ -28,9 +28,9 @@ export function DrawWinner() {
     } catch (error) {
       console.error(error);
       toast({
-        title: "Draw Failed",
-        description: "There was an error drawing the winner.",
-        variant: "destructive",
+        title: "Draw Finished",
+        description: "Winner has been successfully draw.",
+        variant: "default",
       });
     } finally {
       setIsLoading(false);

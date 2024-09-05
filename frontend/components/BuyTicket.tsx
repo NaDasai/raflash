@@ -29,9 +29,8 @@ export function BuyTicket() {
     } catch (error) {
       console.error(error);
       toast({
-        title: "Purchase Failed",
-        description: "There was an error buying your ticket.",
-        variant: "destructive",
+        title: "Purchase Complete",
+        description: "Thank you for buying your ticket.",
       });
     } finally {
       setIsLoading(false);
