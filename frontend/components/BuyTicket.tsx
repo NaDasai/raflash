@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getAccountAPTBalance } from "@/view-functions/getAccountBalance";
 import { buyTicket } from "@/entry-functions/buyTicket";
 
-const MODULE_ADDRESS = "module_addr";
+const MODULE_ADDRESS = "0x037460d919f725db056a21b9da4682088748f6128b1ae2ce8ddf9a10ab469c0a";
 const MODULE_NAME = "raflash";
 
 export function BuyTicket() {
@@ -19,7 +19,7 @@ export function BuyTicket() {
     setIsLoading(true);
     try {
       const transaction = await signAndSubmitTransaction(buyTicket({}));
-      const result = await aptosClient.account.getResource(account.address, 'MODULE_ADDRESS::module_addr::Ticket');
+      const result = await aptosClient.account.getResource(account.address, `${MODULE_ADDRESS}::${MODULE_NAME}::Pool`);
       setData(result.data);
       toast({
         title: "Ticket Purchased",
@@ -43,7 +43,7 @@ export function BuyTicket() {
       <Button
         onClick={handleBuyTicket}
         disabled={isLoading}
-        className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-semibold py-2 px-6 rounded-full shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
+        className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
       >
         {isLoading ? "Processing..." : "Buy Ticket"}
       </Button>
