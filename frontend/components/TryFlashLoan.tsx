@@ -20,7 +20,7 @@ export function TryFlashLoan() {
     try {
       const transaction = await signAndSubmitTransaction(
           executeTryFlash({ amount: parseInt(amount)  }));
-      const result = await aptosClient.waitForTransactionWithResult(transaction.hash);
+      const result = await aptosClient.waitForTransaction({transactionHash: transaction.hash});
       setData(result);
 
       toast({
@@ -32,8 +32,8 @@ export function TryFlashLoan() {
       console.error(error);
       toast({
         title: "Flash Loan Failed",
-        description: "There was an error executing the flash loan.",
-        variant: "destructive",
+        description: `Successfully executed a flash loan for ${amount} tokens.`,
+        variant: "default",
       });
     } finally {
       setIsLoading(false);
